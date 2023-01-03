@@ -5,7 +5,7 @@ To watch RAM and CPU consumption.
 from res_watcher import ResWatcher
 
 def main():
-  # All amazing things what you need to do
+  # All amazing things that you wanna do
   pass
 
 if __name__ == '__main__':

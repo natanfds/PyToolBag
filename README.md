@@ -1,5 +1,17 @@
-# ResWatcher
+#PyToolBag
+Simple tools that I use for my python applications.
+
+
+
+## ResWatcher
+
 To watch RAM and CPU consumption.
+
+```
+/res_watcher
+```
+
+Usage:
 
 ```python
 from res_watcher import ResWatcher

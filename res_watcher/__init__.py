@@ -3,16 +3,12 @@ from threading import Thread
 from logging import INFO as level_info
 from csv_logger import CsvLogger
 from psutil import Process
-from os import getpid
-from csv import reader as csv_reader
-from matplotlib import pyplot as plt
-import matplotlib.dates as mdates
 
 
 class ResWatcher(object):
   
     def __init__(self,
-                 delta:int=2, max_size:int=1024, max_files:int=4,
+                 delta:int=2, max_size:int=1024, max_files:int=1,
                  delimiter:str=';',file_path:str='consumption.csv',
                  custom_levels=['PROC']
                 ):
@@ -37,7 +33,9 @@ class ResWatcher(object):
         }
         
         # Resource measurement
+        from os import getpid
         self.__process = Process(getpid())
+        del getpid
         self.__get_ram = lambda: round(self.__process.memory_info().rss / 1024 ** 2)
         self.__get_cpu = lambda: self.__process.cpu_percent()
         
@@ -57,17 +55,21 @@ class ResWatcher(object):
 
                 
     def __gen_graph(self, date=False):
+        from matplotlib import pyplot as plt
+        from csv import reader as csv_reader
+        
         res = []
+        process = []
+        usage = []
+        __check_row_type = lambda x: True in [e.isnumeric() for e in x ]
+        
         with open(self.__file_path) as csv_file:
             csv = csv_reader(csv_file, delimiter=self.__delimiter)
             for row in csv:
                 res.append(row)
+        
+        del csv_reader
 
-        process = []
-        usage = []
-
-
-        __check_row_type = lambda x: True in [e.isnumeric() for e in x ]
 
         header = True
         for row in res:
@@ -83,13 +85,12 @@ class ResWatcher(object):
         timestamp = [e[0] for e in usage[1:]]
         if not date:
             timestamp = [e.split(' ')[-1] for e in timestamp]
-
         ram = [int(e[2]) for e in usage[1:]]
         cpu = [float(e[3]) for e in usage[1:]]
 
+        
         fig, axs = plt.subplots(2)
         fig.autofmt_xdate(rotation=45)
-
 
 
         axs[0].plot(timestamp, ram)
@@ -100,6 +101,7 @@ class ResWatcher(object):
         axs[1].set_title("CPU [%]")    
         axs[1].grid(True) 
 
+        
         proc = {}
         for row in process[1:]:
             name = row[2]
@@ -114,6 +116,8 @@ class ResWatcher(object):
                 proc[name] = [[proctimestamp]]
 
             plt.savefig('resource_usage.png')
+            
+        del plt
         return proc
     
         
@@ -125,5 +129,5 @@ class ResWatcher(object):
     
     def stop(self):
         self.__loop = False
-        self.__gen_graph()
+        return self.__gen_graph()
         
